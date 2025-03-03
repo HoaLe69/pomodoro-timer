@@ -1,71 +1,111 @@
 "use client";
 import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import PomodoroTaskItem from "./pomodoro-task-item";
 import { Button } from "./ui/button";
 import { PlusCircle, ChevronUp, ChevronDown } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
+import PomodoroTaskForm from "./pomodoro-task-form";
+import { ITaskEditedInfo } from "@/lib/types";
 
 interface Task {
   id: string;
   title: string;
   status: "todo" | "inprogress" | "completed";
+  estPomodoro: 1;
 }
 
 export default function PomodoroTask() {
+  const [taskInfo, setTaskInfo] = useState<Task>({
+    id: "",
+    title: "",
+    estPomodoro: 1,
+    status: "todo",
+  });
+  const [openAddingTask, setOpenAddingTask] = useState<boolean>(false);
   const [tasks, setTasks] = useState<Task[]>([
     {
       id: "task-1",
       title: "Complete project documentation",
       status: "todo",
+      estPomodoro: 1,
     },
     {
       id: "task-2",
       title: "Design user interface",
       status: "inprogress",
+      estPomodoro: 1,
     },
     {
       id: "task-3",
       title: "Research competitors",
       status: "completed",
+      estPomodoro: 1,
     },
   ]);
+
+  const handleToggleAddingTask = useCallback(() => {
+    setOpenAddingTask(!openAddingTask);
+  }, [openAddingTask]);
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setTaskInfo((pre) => ({ ...pre, [name]: value }));
+  }, []);
+
+  const handleCreateTask = useCallback(() => {
+    if (!taskInfo.title) return;
+
+    taskInfo.id = uuidv4();
+    setTasks((pre) => [...pre, taskInfo]);
+    setTaskInfo((pre) => ({ ...pre, title: "", estPomodoro: 1, id: "" }));
+  }, [taskInfo]);
+
+  const handleEditTask = useCallback((taskEditedInfo: ITaskEditedInfo) => {
+    //@ts-ignore
+    setTasks((preTasks) => {
+      return preTasks.map((task) => {
+        if (task.id === taskEditedInfo.id) {
+          return { ...task, ...taskEditedInfo };
+        }
+        return task;
+      });
+    });
+  }, []);
+
+  const handleDeleteTask = useCallback((id: string) => {
+    if (!id) return;
+    setTasks((pre) => pre.filter((task) => task.id !== id));
+  }, []);
+
   return (
     <div className="max-w-[500px] mx-auto pt-4">
       <h2 className="text-xl font-semibold">Tasks 🐻</h2>
       <Separator />
-
       {tasks.map((task) => (
         <PomodoroTaskItem
+          id={task.id}
           key={task.id}
           status={task.status}
-          id={task.id}
           title={task.title}
+          estPomodoro={task.estPomodoro}
+          onEdit={handleEditTask}
+          onDelete={() => handleDeleteTask(task.id)}
         />
       ))}
-      <div className="py-4 px-4 bg-zinc-900 my-2 rounded-md">
-        <input
-          className="w-full bg-transparent outline-none font-semibold text-xl italic"
-          placeholder="What are you working on ?"
+      {openAddingTask ? (
+        <PomodoroTaskForm
+          onChange={handleChange}
+          onToggle={handleToggleAddingTask}
+          taskInfo={taskInfo}
+          onSave={handleCreateTask}
         />
-        <span className="text-sm font-bold text-gray-400">Ets Pomodoros</span>
-        <div className="flex items-center">
-          <input
-            type="number"
-            step={1}
-            className="max-w-20 bg-transparent border rounded-md p-1 appearance-none mt-1 border-gray-600"
-          />
-          <Button className="p-1 mx-2 h-full border border-gray-600 hover:opacity-80">
-            <ChevronUp />
-          </Button>
-          <Button className="p-1 h-full border border-gray-600 hover:opacity-80">
-            <ChevronDown />
-          </Button>
-        </div>
-      </div>
-      <Button className="w-full mt-2">
-        <PlusCircle />
-        Add task
-      </Button>
+      ) : (
+        <Button onClick={handleToggleAddingTask} className="w-full mt-2">
+          <PlusCircle />
+          Add task
+        </Button>
+      )}
     </div>
   );
 }

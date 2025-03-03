@@ -1,4 +1,3 @@
-"use client";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
 import { CheckCircle, EllipsisVertical, Trash, Edit } from "lucide-react";
@@ -8,19 +7,33 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+import PomodoroTaskForm from "./pomodoro-task-form";
+import { ITaskEditedInfo } from "@/lib/types";
 
 interface TaskItemProps {
   id: string;
   title: string;
   status: string;
+  estPomodoro: number;
+  onEdit: (taskInfoEdited: ITaskEditedInfo) => void;
+  onDelete: () => void;
 }
 
 export default function PomodoroTaskItem({
-  id = "task-1",
-  title = "Complete project documentation",
+  id,
+  title,
   status,
+  onEdit,
+  onDelete,
+  estPomodoro,
 }: TaskItemProps) {
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [taskInfoEdited, setTaskInfoEdited] = useState({
+    id,
+    title,
+    estPomodoro,
+  });
   const statusStyle: Record<string, string> = {
     todo: "bg-gray-300",
     inprogress: "bg-yellow-400",
@@ -28,14 +41,35 @@ export default function PomodoroTaskItem({
   };
 
   const handleEdit = useCallback(() => {
-    //
-  }, []);
+    if (
+      !taskInfoEdited.id ||
+      (!taskInfoEdited.title && !taskInfoEdited.estPomodoro)
+    )
+      return;
+    onEdit(taskInfoEdited);
+    setIsEditing(false);
+  }, [taskInfoEdited]);
 
-  const handleDelete = useCallback(() => {
-    //
-  }, []);
+  const handleToggleEditing = useCallback(() => {
+    setIsEditing(!isEditing);
+  }, [isEditing]);
 
-  return (
+  const handleOnChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setTaskInfoEdited((pre) => ({ ...pre, [name]: value }));
+    },
+    [],
+  );
+
+  return isEditing ? (
+    <PomodoroTaskForm
+      onChange={handleOnChange}
+      onToggle={handleToggleEditing}
+      onSave={handleEdit}
+      taskInfo={taskInfoEdited}
+    />
+  ) : (
     <div className="w-full h-11">
       <div className="flex items-center bg-zinc-900 rounded-md h-full my-2">
         <div
@@ -58,11 +92,11 @@ export default function PomodoroTaskItem({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleToggleEditing}>
               <Edit />
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={onDelete}>
               <Trash />
               Delete
             </DropdownMenuItem>
