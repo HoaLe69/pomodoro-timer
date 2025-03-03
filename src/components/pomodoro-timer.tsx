@@ -4,7 +4,8 @@ import { PomodoroTimerContext } from "@/lib/pomodoro-timer-provider";
 import { useState, useEffect, useCallback, useContext } from "react";
 
 export default function PomodoroTimer() {
-  const { pomodoroSession } = useContext(PomodoroTimerContext);
+  const { pomodoroSession, handlePomodoroTimerEnd } =
+    useContext(PomodoroTimerContext);
   const [timeLeft, setTimeLeft] = useState<number>(pomodoroSession);
   const [isRunning, setIsRunning] = useState<boolean>(false);
 
@@ -15,7 +16,10 @@ export default function PomodoroTimer() {
         setTimeLeft((pre) => pre - 1);
       }, 1000);
     } else if (timeLeft == 0) {
-      setIsRunning(false);
+      if (isRunning) {
+        handlePomodoroTimerEnd();
+        setIsRunning(false);
+      }
     }
     return () => {
       return clearInterval(timer);

@@ -9,16 +9,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCallback, useState } from "react";
 import PomodoroTaskForm from "./pomodoro-task-form";
-import { ITaskEditedInfo } from "@/lib/types";
+import { ITaskEditedInfo, ITask } from "@/lib/types";
 
-interface TaskItemProps {
-  id: string;
-  title: string;
-  status: string;
-  estPomodoro: number;
+type TaskItemProps = ITask & {
   onEdit: (taskInfoEdited: ITaskEditedInfo) => void;
   onDelete: () => void;
-}
+  onComplete: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  onPriorityTask: () => void;
+};
 
 export default function PomodoroTaskItem({
   id,
@@ -26,6 +24,9 @@ export default function PomodoroTaskItem({
   status,
   onEdit,
   onDelete,
+  onComplete,
+  onPriorityTask,
+  progress,
   estPomodoro,
 }: TaskItemProps) {
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -35,9 +36,9 @@ export default function PomodoroTaskItem({
     estPomodoro,
   });
   const statusStyle: Record<string, string> = {
-    todo: "bg-gray-300",
+    // todo: "bg-gray-300",
     inprogress: "bg-yellow-400",
-    completed: "bg-green-500",
+    completed: "!bg-green-500",
   };
 
   const handleEdit = useCallback(() => {
@@ -62,6 +63,11 @@ export default function PomodoroTaskItem({
     [],
   );
 
+  const completeTask = {
+    strokeWidth: "3px",
+    color: status === "completed" ? "#22c55e" : "#dbd6d6",
+  };
+
   return isEditing ? (
     <PomodoroTaskForm
       onChange={handleOnChange}
@@ -70,13 +76,19 @@ export default function PomodoroTaskItem({
       taskInfo={taskInfoEdited}
     />
   ) : (
-    <div className="w-full h-11">
-      <div className="flex items-center bg-zinc-900 rounded-md h-full my-2">
+    <div className="w-full h-11 hover:cursor-pointer ">
+      <div
+        onClick={onPriorityTask}
+        className="flex items-center bg-zinc-900 rounded-md h-full my-2 group"
+      >
         <div
-          className={`${statusStyle[status]} h-full w-2  rounded-tl-md rounded-bl-md`}
+          className={`${statusStyle[status]} group-hover:bg-yellow-400 h-full w-2  rounded-tl-md rounded-bl-md`}
         />
-        <Button className="bg-transparent hover:opacity-80">
-          <CheckCircle />
+        <Button
+          onClick={(e) => onComplete(e)}
+          className="bg-transparent hover:opacity-80"
+        >
+          <CheckCircle {...completeTask} />
         </Button>
         <p
           className={clsx("text-base font-medium ", {
@@ -85,6 +97,11 @@ export default function PomodoroTaskItem({
         >
           {title}
         </p>
+        <div className="flex-1 flex justify-end">
+          <span className="text-xs font-black">
+            {progress} / {estPomodoro}
+          </span>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button className="ml-auto bg-transparent">
