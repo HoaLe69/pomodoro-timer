@@ -21,22 +21,19 @@ export default function PomodoroTimerSettingModal({
   open,
   onOpenChange,
 }: Props) {
-  const { updatePomodoroSession } = useContext(PomodoroTimerContext);
-  const [pomodoroTimer, setPomodoroTimer] = useState({
-    pomodoro: 25,
-    shortBreak: 5,
-    longBreak: 15,
-  });
+  const { timeDurations, onChangeTimeDurations } =
+    useContext(PomodoroTimerContext);
+  const [newTimeDurations, setNewTimeDurations] = useState(timeDurations);
 
   const handleSavePomodoroTimer = useCallback(() => {
-    updatePomodoroSession(pomodoroTimer.pomodoro * 60);
+    onChangeTimeDurations(newTimeDurations);
     onOpenChange(false);
-  }, [pomodoroTimer]);
+  }, [newTimeDurations]);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const { value, name } = e.target;
-      setPomodoroTimer((pre) => ({ ...pre, [name]: Number(value) }));
+      setNewTimeDurations((pre) => ({ ...pre, [name]: Number(value) }));
     },
     [],
   );
@@ -68,18 +65,18 @@ export default function PomodoroTimerSettingModal({
               onChange={handleInputChange}
               label="Pomodoro"
               name="pomodoro"
-              value={pomodoroTimer?.pomodoro}
+              value={newTimeDurations?.pomodoro}
             />
             <InputGroup
               onChange={handleInputChange}
               label="Short Break"
               name="shortBreak"
-              value={pomodoroTimer?.shortBreak}
+              value={newTimeDurations?.shortBreak}
             />
             <InputGroup
               onChange={handleInputChange}
               label="Long Break"
-              value={pomodoroTimer?.longBreak}
+              value={newTimeDurations?.longBreak}
               name="longBreak"
             />
           </form>

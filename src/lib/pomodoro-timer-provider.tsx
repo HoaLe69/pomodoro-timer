@@ -1,33 +1,53 @@
 import { createContext, useCallback, useEffect, useState } from "react";
 import type { ICurrentPomodoroSession } from "@/lib/types";
 
+type ITimeDurations = {
+  pomodoro: number;
+  shortBreak: number;
+  longBreak: number;
+};
 type IPomodoroTimerContext = {
   currentPomodoroSession: ICurrentPomodoroSession;
-  pomodoroSession: number;
+  timeDurations: ITimeDurations;
   totalPomodoroSession: number;
-  updatePomodoroSession: (timer: number) => void;
-  handlePomodoroTimerEnd: () => void;
+  onPomodoroTimerEnd: () => void;
+  onChangeTimeDurations: (timeDurations: ITimeDurations) => void;
+  onPomodoroChangeSession: (session: ICurrentPomodoroSession) => void;
 };
 
+const TIME_DURATIONS_DEFAULT = {
+  pomodoro: 40,
+  shortBreak: 5,
+  longBreak: 15,
+};
 export const PomodoroTimerContext = createContext<IPomodoroTimerContext>({
   currentPomodoroSession: "pomodoro",
-  pomodoroSession: 25 * 60,
+  timeDurations: TIME_DURATIONS_DEFAULT,
   totalPomodoroSession: 0,
-  updatePomodoroSession: (timer: number) => {},
-  handlePomodoroTimerEnd: () => {},
+  onPomodoroTimerEnd: () => {},
+  onChangeTimeDurations: () => {},
+  onPomodoroChangeSession: () => {},
 });
 
 const PomodoroTimerProvider = ({ children }: { children: React.ReactNode }) => {
-  const [pomodoroSession, setPomodoroSession] = useState<number>(25 * 60);
+  const [timeDurations, setTimeDurations] = useState(TIME_DURATIONS_DEFAULT);
   const [totalPomodoroSession, setTotalPomodoroSection] = useState<number>(0);
   const [currentPomodoroSession, setCurrentPomodoroSession] =
     useState<ICurrentPomodoroSession>("pomodoro");
 
-  const updatePomodoroSession = useCallback((timer: number) => {
-    setPomodoroSession(timer);
+  const onPomodoroChangeSession = useCallback(
+    (session: ICurrentPomodoroSession) => {
+      if (!session) return;
+      setCurrentPomodoroSession(session);
+    },
+    [],
+  );
+
+  const onChangeTimeDurations = useCallback((timeDurations: ITimeDurations) => {
+    setTimeDurations(timeDurations);
   }, []);
 
-  const handlePomodoroTimerEnd = useCallback(() => {
+  const onPomodoroTimerEnd = useCallback(() => {
     const isLongBreak = (totalPomodoroSession + 1) % 4 === 0;
 
     if (currentPomodoroSession == "pomodoro") {
@@ -41,26 +61,15 @@ const PomodoroTimerProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [currentPomodoroSession, totalPomodoroSession]);
 
-  useEffect(() => {
-    let duration;
-    if (currentPomodoroSession == "shortBreak") {
-      duration = 5 * 60;
-    } else if (currentPomodoroSession == "longBreak") {
-      duration = 15 * 60;
-    } else {
-      duration = 25 * 60;
-    }
-    setPomodoroSession(duration);
-  }, [currentPomodoroSession]);
-
   return (
     <PomodoroTimerContext.Provider
       value={{
-        pomodoroSession,
+        timeDurations,
         currentPomodoroSession,
         totalPomodoroSession,
-        updatePomodoroSession,
-        handlePomodoroTimerEnd,
+        onPomodoroTimerEnd,
+        onChangeTimeDurations,
+        onPomodoroChangeSession,
       }}
     >
       {children}
