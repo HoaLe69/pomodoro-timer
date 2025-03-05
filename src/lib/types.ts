@@ -11,3 +11,4 @@ export type ITask = {
   estPomodoro: 1;
   progress: 0;
 };
+export type ICurrentPomodoroSession = "pomodoro" | "shortBreak" | "longBreak";

@@ -4,7 +4,7 @@ import { PomodoroTimerContext } from "@/lib/pomodoro-timer-provider";
 import { useState, useEffect, useCallback, useContext } from "react";
 
 export default function PomodoroTimer() {
-  const { pomodoroSession, handlePomodoroTimerEnd } =
+  const { pomodoroSession, currentPomodoroSession, handlePomodoroTimerEnd } =
     useContext(PomodoroTimerContext);
   const [timeLeft, setTimeLeft] = useState<number>(pomodoroSession);
   const [isRunning, setIsRunning] = useState<boolean>(false);
@@ -46,6 +46,10 @@ export default function PomodoroTimer() {
         <span className="select-none text-8xl flex items-center font-extrabold">
           {formatTime(timeLeft)}
         </span>
+      </div>
+      <div className="py-2 text-xl font-medium">
+        {currentPomodoroSession == "shortBreak" && "Short Break"}
+        {currentPomodoroSession == "longBreak" && "Long Break"}
       </div>
       <Button size="lg" onClick={handleRun}>
         {isRunning ? "Pause" : "Start"}
