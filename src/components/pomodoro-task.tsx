@@ -3,7 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { useState, useCallback, useEffect, useContext } from "react";
 import PomodoroTaskItem from "./pomodoro-task-item";
 import { Button } from "./ui/button";
-import { PlusCircle, ChevronUp, ChevronDown } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import PomodoroTaskForm from "./pomodoro-task-form";
 import { ITask, ITaskEditedInfo } from "@/lib/types";

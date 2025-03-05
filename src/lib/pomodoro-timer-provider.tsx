@@ -1,4 +1,4 @@
-import { createContext, useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useState } from "react";
 import type { ICurrentPomodoroSession } from "@/lib/types";
 
 type ITimeDurations = {
