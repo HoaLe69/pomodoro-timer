@@ -1,10 +1,11 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { PomodoroTimerContext } from "@/lib/pomodoro-timer-provider";
-import { useState, useEffect, useCallback, useContext } from "react";
+import { useState, useEffect, useCallback, useContext, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
+const SECONDS_IN_MIN = 60;
 export default function PomodoroTimer() {
   const {
     timeDurations,
@@ -14,9 +15,10 @@ export default function PomodoroTimer() {
   } = useContext(PomodoroTimerContext);
 
   const [timeLeft, setTimeLeft] = useState<number>(
-    timeDurations[currentPomodoroSession] * 60,
+    timeDurations[currentPomodoroSession] * SECONDS_IN_MIN,
   );
   const [isRunning, setIsRunning] = useState<boolean>(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
@@ -28,15 +30,27 @@ export default function PomodoroTimer() {
       if (isRunning) {
         onPomodoroTimerEnd();
         setIsRunning(false);
+        audioRef.current?.play();
       }
     }
     return () => {
       return clearInterval(timer);
     };
-  }, [isRunning, timeLeft]);
+  }, [isRunning, timeLeft, audioRef]);
 
+  const handleAudioEnded = useCallback(() => {
+    const audioEl = audioRef.current;
+    console.log("audio ended");
+    if (audioEl) {
+      if (currentPomodoroSession == "pomodoro") {
+        audioEl.src = "/sounds/machi-no-dorufin.mp3";
+      } else {
+        audioEl.src = "/sounds/get-back-to-work-you-monkey.mp3";
+      }
+    }
+  }, [audioRef, currentPomodoroSession]);
   useEffect(() => {
-    setTimeLeft(timeDurations[currentPomodoroSession] * 60);
+    setTimeLeft(timeDurations[currentPomodoroSession] * SECONDS_IN_MIN);
   }, [currentPomodoroSession, timeDurations]);
 
   const handleRun = useCallback(() => {
@@ -84,6 +98,11 @@ export default function PomodoroTimer() {
           </Button>
         </div>
       </CardContent>
+      <audio
+        onEnded={handleAudioEnded}
+        ref={audioRef}
+        src={"/sounds/machi-no-dorufin.mp3"}
+      />
     </Card>
   );
 }
